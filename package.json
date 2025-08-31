@@ -1,0 +1,29 @@
+{
+  "name": "cine",
+  "version": "1.0.0",
+  "description": "readme",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild extension/background.js --bundle --format=esm --platform=browser --outfile=extension/dist/background.js",
+    "clean": "rm -rf extension/dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IanEvers/Cine.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/IanEvers/Cine/issues"
+  },
+  "homepage": "https://github.com/IanEvers/Cine#readme",
+  "devDependencies": {
+    "esbuild": "0.25.9"
+  },
+  "dependencies": {
+    "unofficial-metacritic": "2.0.0"
+  }
+}

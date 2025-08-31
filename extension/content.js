@@ -17,20 +17,14 @@
   }
 
   function selectTitleFromCard(card) {
-    // Preferred: <img alt="Title"> inside the card
-    const img = card.querySelector("img[alt]");
-    if (img && img.getAttribute("alt") && img.getAttribute("alt").trim().length > 0) {
-      return img.getAttribute("alt").trim();
+    console.log("selectTitleFromCard", card);
+    
+    // Prefer explicit movie link with title attribute
+    const explicitLinkText = card.title;
+    if (explicitLinkText) {
+      console.log("explicitLinkText", explicitLinkText);
+      return explicitLinkText.trim();
     }
-    // Try headings
-    const heading = card.querySelector("h1, h2, h3, .title, [class*='title'], [data-title]");
-    if (heading) {
-      const dt = heading.getAttribute("data-title");
-      return (dt || heading.textContent || "").trim();
-    }
-    // Fallback to link text
-    const link = card.querySelector("a[href]");
-    if (link) return (link.getAttribute("aria-label") || link.textContent || "").trim();
     return "";
   }
 
@@ -38,19 +32,28 @@
     const candidates = new Set();
     // Common patterns on cinemarkhoyts.com.ar for movie/listing/detail tiles
     const linkNodes = document.querySelectorAll(
-      "a[href*='/peliculas/'], a[href*='/pelicula/'], a[href*='/peliculas?']"
+      "a[data-testid='movie-link'][href^='/pelicula/']"
     );
     linkNodes.forEach((a) => {
       const card = a.closest("article, li, .card, .movie, .pelicula, .grid-item, .swiper-slide, .slick-slide, .card-body, .card-container");
-      if (card) candidates.add(card);
+      if (card) {
+        candidates.add(card);
+      } else {
+        // Treat the anchor as the card if no parent container exists
+        candidates.add(a);
+      }
     });
 
     // Also consider visible images with alt text (covers)
     const imgs = document.querySelectorAll("img[alt]");
     imgs.forEach((img) => {
       const card = img.closest("article, li, .card, .movie, .pelicula, .grid-item, .swiper-slide, .slick-slide, .card-body, .card-container");
-      if (card) candidates.add(card);
+      if (card) {
+        candidates.add(card);
+      }
     });
+
+    console.log("candidates", candidates);
 
     // Filter only those with a plausible title
     return Array.from(candidates).filter((card) => selectTitleFromCard(card));
@@ -119,6 +122,7 @@
   async function processCard(card) {
     if (card.getAttribute(SCANNED_ATTR) === "1") return;
     const title = selectTitleFromCard(card);
+    console.log("processCard", title);
     if (!title) return;
     ensurePositioning(card);
     const wrapper = createBadgeWrapper(card);
@@ -130,21 +134,26 @@
 
   const scanAll = debounce(() => {
     const cards = findMovieCards();
+    console.log("scanAll cards", cards);
     cards.forEach(processCard);
   }, 200);
 
+  console.log("scanAll");
   // Initial scan
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", scanAll);
+    console.log("scanAll document.readyState === 'loading'");
   } else {
+    console.log("scanAll else");
     scanAll();
   }
 
   // Observe dynamic content changes
-  const observer = new MutationObserver(() => scanAll());
+  console.log("scanAll observer");
+  /*const observer = new MutationObserver(() => scanAll());
   observer.observe(document.documentElement || document.body, {
     childList: true,
     subtree: true,
-  });
+  });*/
 })();
 

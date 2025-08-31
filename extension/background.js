@@ -2,6 +2,8 @@
   Background service worker for fetching Metacritic scores with caching and fallbacks.
 */
 
+import { getMoviesReviews } from "unofficial-metacritic";
+
 const CACHE_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 const STORAGE_KEY_PREFIX = "mc:title:";
 
@@ -146,6 +148,31 @@ async function searchAndFetch(title) {
   return null;
 }
 
+async function tryUnofficialMetacriticLookup(rawTitle) {
+  console.log("tryUnofficialMetacriticLookup", rawTitle);
+  try {
+    const target = normalizeTitle(rawTitle);
+    const currentYear = new Date().getFullYear();
+    const yearsToScan = 10;
+    for (let y = 0; y <= yearsToScan; y++) {
+      const year = String(currentYear - y);
+      const list = await getMoviesReviews({ year });
+      if (!Array.isArray(list)) continue;
+      for (const item of list) {
+        const itemTitle = normalizeTitle((item && item.title) || "");
+        if (!itemTitle) continue;
+        if (itemTitle === target) {
+          const critic = typeof item?.score === "number" ? item.score : null;
+          if (critic != null) return { critic, user: null };
+        }
+      }
+    }
+  } catch (_) {
+    // Ignore errors and fall back to our own scraper
+  }
+  return null;
+}
+
 async function getScoresForTitle(title) {
   const normalized = normalizeTitle(title);
   if (!normalized) return { critic: null, user: null };
@@ -153,12 +180,16 @@ async function getScoresForTitle(title) {
   const cached = await getFromCache(normalized);
   if (cached) return { critic: cached.critic ?? null, user: cached.user ?? null };
 
-  // Try direct slug guess first
-  const slug = titleToSlug(title);
-  let result = null;
-  if (slug) {
-    result = await tryFetchMoviePageBySlug(slug);
+  // 1) Try library lookup
+  let result = await tryUnofficialMetacriticLookup(title);
+  // 2) Try direct slug guess
+  if (!result) {
+    const slug = titleToSlug(title);
+    if (slug) {
+      result = await tryFetchMoviePageBySlug(slug);
+    }
   }
+  // 3) Fallback to Metacritic search scraping
   if (!result) {
     result = await searchAndFetch(title);
   }
