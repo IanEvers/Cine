@@ -1,0 +1,28 @@
+.ch-mc-badge-wrapper {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ch-mc-badge {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.ch-mc-pill {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1;
+  color: #fff;
+  padding: 5px 6px;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  pointer-events: auto; /* allow tooltip hover */
+}
+
+.ch-mc-critic { background: #2ecc71; }
+.ch-mc-user { background: #3498db; }
+

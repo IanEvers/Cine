@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Cinemark Hoyts Metacritic Scores",
+  "version": "0.1.0",
+  "description": "Displays Metacritic critic and user scores on cinemarkhoyts.com.ar movie tiles.",
+  "action": {
+    "default_title": "Metacritic Scores"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.cinemarkhoyts.com.ar/*",
+    "https://www.metacritic.com/*",
+    "https://r.jina.ai/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.cinemarkhoyts.com.ar/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {}
+}
